@@ -1,5 +1,5 @@
 import numpy as np
-import cv2
+from cv2 import cv2
 from ppadb.client import Client as AdbClient
 from itertools import product
 from time import sleep

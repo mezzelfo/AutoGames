@@ -1,5 +1,5 @@
 import numpy as np
-import cv2
+from cv2 import cv2
 from ppadb.client import Client as AdbClient
 from sklearn.cluster import KMeans
 from math import floor,ceil
