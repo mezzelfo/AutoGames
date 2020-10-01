@@ -14,12 +14,11 @@ device = client.devices()[0]
 
 image = get_screencap(device)
 imagehsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-all_pieces_mask = cv2.inRange(imagehsv, (0, 250, 150), (180, 255, 255))
+all_pieces_mask = cv2.inRange(imagehsv, (0, 230, 150), (180, 255, 255))
 ker = np.ones((15, 15))
 all_pieces_mask = cv2.erode(all_pieces_mask, ker)
 num_blocks, cc = cv2.connectedComponents(all_pieces_mask)
 starting_board = cc[650:1500:165, 120:970:165]
-print(starting_board)
 starting_board = tuple(tuple(l) for l in starting_board)
 nums = np.max(starting_board)
 tile_infos = {}
@@ -77,16 +76,16 @@ def get_next_states(board):
             yield n, m, tuple(tuple(l) for l in board)
             board = copy.copy()
 
+
 while not Q.empty():
     board = Q.get()
-    if len(set(board[2])) == 2:
+    if board[2][-1] == target:
         print('Vinto')
         winning_path = nx.bidirectional_shortest_path(G, starting_board, board)
-        print(len(winning_path))
+        print(len(winning_path)-1)
         break
     for n, move, state in get_next_states(board):
         if state not in G:
             Q.put(state)
             G.add_node(state)
         G.add_edge(board, state)
-        
