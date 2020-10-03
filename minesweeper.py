@@ -66,26 +66,22 @@ device = client.devices()[0]
 
 tap((0,0),device)
 
+def f(mat):
+    tmp = cv2.filter2D(mat, -1, ker, borderType=cv2.BORDER_CONSTANT)
+    tmp = cv2.filter2D((tmp == board) * infos, -1, ker, borderType=cv2.BORDER_CONSTANT)
+    tmp = np.array((tmp*unknowns) > 0, dtype=np.float)
+    return tmp
+
 while True:
     image = get_screencap(device)
     board = get_board(image)
 
-    #print(board)
-    #exit()
-
     ker = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]], dtype=np.float)
     unknowns = np.array(board == -1, dtype=np.float)
     infos = np.array(board >= 1, dtype=np.float)
-    num_near_unknowns = cv2.filter2D(unknowns, -1, ker, borderType=cv2.BORDER_CONSTANT)*infos
-    
-    detected_bomb = cv2.filter2D((num_near_unknowns == board) * infos, -1, ker, borderType=cv2.BORDER_CONSTANT)
-    detected_bomb = np.array((detected_bomb*unknowns) > 0, dtype=np.float)
 
-    safe_places = cv2.filter2D(detected_bomb, -1, ker, borderType=cv2.BORDER_CONSTANT)*infos
-    safe_places = np.array((safe_places == board) &
-                           (board > 0), dtype=np.float)
-    safe_places = cv2.filter2D(safe_places, -1, ker, borderType=cv2.BORDER_CONSTANT)*unknowns > 0
-    safe_places = safe_places - detected_bomb
+    detected_bomb = f(unknowns)
+    safe_places = f(detected_bomb) - detected_bomb
     
     if np.all(safe_places == 0):
         print('Nessun posto sicuro')
@@ -97,10 +93,10 @@ if np.sum(board == -1) > 10:
     for bomb_pos in zip(*np.where(detected_bomb > 0)):
         tap(bomb_pos, device, long_tap=True)
 
-    fig, axes = plt.subplots(2, 3)
+    fig, axes = plt.subplots(2, 2)
     for ax, mat, name in zip(axes.ravel(),
-                            [board, unknowns ,num_near_unknowns, detected_bomb, safe_places],
-                            ['board','unknowns', 'num_near_unknowns', 'detected_bomb', 'safe_places']):
+                            [board, unknowns, detected_bomb, safe_places],
+                            ['board','unknowns', 'detected_bomb', 'safe_places']):
         ax.set_title(name)
         ax.matshow(mat)
     plt.show()
