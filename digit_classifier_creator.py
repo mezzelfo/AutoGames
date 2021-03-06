@@ -108,7 +108,7 @@ number_mask_back = mask.copy()
 for digit_classifier_file in os.listdir('./'):
     if '.pickle' in digit_classifier_file:
         number_mask = number_mask_back.copy()
-        with open('digit_classifier_Linear SVM.pickle','rb') as f:
+        with open(digit_classifier_file,'rb') as f:
             digit_classifier = pickle.load(f)
 
         for cnt in cnts:
@@ -116,7 +116,6 @@ for digit_classifier_file in os.listdir('./'):
             box = number_mask[y:y+h,x:x+w]
             box = cv2.resize(box,(25,25)).flatten()
             num = digit_classifier.predict([box])[0]
-            #cv2.rectangle(image,(x,y),(x+w,y+h),(0,0,255),3)
             cv2.putText(image,str(num),(x,y+h),cv2.FONT_HERSHEY_SIMPLEX,3,(0,0,255),3)
             
         cv2.imshow(digit_classifier_file, image)
