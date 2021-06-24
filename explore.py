@@ -19,7 +19,7 @@ high_V_name = 'High V'
 
 client = AdbClient()
 device = client.devices()[0]
-ratio = 0.35
+ratio = 1
 
 def get_screencap(device):
     return cv2.imdecode(np.frombuffer(device.screencap(), dtype=np.uint8), cv2.IMREAD_COLOR)
