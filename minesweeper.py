@@ -69,16 +69,16 @@ tap((0,0),device)
 def f(mat):
     tmp = cv2.filter2D(mat, -1, ker, borderType=cv2.BORDER_CONSTANT)
     tmp = cv2.filter2D((tmp == board) * infos, -1, ker, borderType=cv2.BORDER_CONSTANT)
-    tmp = np.array((tmp*unknowns) > 0, dtype=np.float)
+    tmp = np.array((tmp*unknowns) > 0, dtype=np.float32)
     return tmp
 
 while True:
     image = get_screencap(device)
     board = get_board(image)
 
-    ker = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]], dtype=np.float)
-    unknowns = np.array(board == -1, dtype=np.float)
-    infos = np.array(board >= 1, dtype=np.float)
+    ker = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]], dtype=np.float32)
+    unknowns = np.array(board == -1, dtype=np.float32)
+    infos = np.array(board >= 1, dtype=np.float32)
 
     detected_bomb = f(unknowns)
     safe_places = f(detected_bomb) - detected_bomb
