@@ -8,11 +8,11 @@
 * suguru
 * tende e alberi
 * unblockme
+* suguru
 
 ## Almost working
 * dunk shot
 * nonogram
-* suguru
 
 ## TODO
 * 0h_n0
