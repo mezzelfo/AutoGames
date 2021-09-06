@@ -2,7 +2,6 @@ import numpy as np
 from cv2 import cv2
 from ppadb.client import Client as AdbClient
 import pickle
-import os
 import constraint
 
 def get_screencap(device):
@@ -35,9 +34,9 @@ groups_num, cc = cv2.connectedComponents(blob_blocks_mask)
 side_len = round(np.mean(np.diff(verlines)))
 with open('digit_classifier_Neural Net.pickle','rb') as f:
     digit_classifier = pickle.load(f)
-board = np.zeros((len(horlines),len(verlines)),dtype=np.int)
-numbers = np.zeros((len(horlines),len(verlines)),dtype=np.int)
-variables = np.reshape(np.arange(len(horlines)*len(verlines),dtype=np.int),board.shape)
+board = np.zeros((len(horlines),len(verlines)),dtype=np.int32)
+numbers = np.zeros((len(horlines),len(verlines)),dtype=np.int32)
+variables = np.reshape(np.arange(len(horlines)*len(verlines),dtype=np.int32),board.shape)
 for i,y in enumerate(horlines):
     for j,x in enumerate(verlines):
         board[i,j] = cc[y+30,x+30]
@@ -88,63 +87,3 @@ for i,y in enumerate(horlines):
             device.input_tap(x+side_len//2,y+side_len//2)
             device.input_tap(solution[i,j]*(1080//(problemsize+1)),1600)
 
-cv2.imshow('edge',edge)
-cv2.imshow('number_mask',number_mask)
-cv2.imshow('blob_blocks_mask',blob_blocks_mask)
-cv2.waitKey()
-#blob_blocks_mask = np.asarray(255*(grayimage == 0), dtype=np.uint8)
-#blob_blocks_mask[:300] = 0
-#blob_blocks_mask[-450:] = 0
-#_, filled_blob_blocks_mask, _, _ = cv2.floodFill(
-#     255-blob_blocks_mask, None, (0, 0), 0)
-# num, cc = cv2.connectedComponents(filled_blob_blocks_mask)
-# print(f'Ho trovato {num-1} regioni')
-# print(np.unique(cc))
-# image_cv = np.asarray(cc*255/np.max(cc,axis=(0,1)),dtype=np.uint8)
-# a,b,c,d = cv2.boundingRect(np.array(image_cv>0,dtype=np.uint8))
-# #cv2.rectangle(image,(a,b),(a+c,b+d),(0,0,255),3)
-
-
-# number_mask = np.asarray(255*(grayimage == 128), dtype=np.uint8)
-# number_mask[:300] = 0
-# number_mask[-450:] = 0
-# ker = np.ones((2, 2))
-# number_mask = cv2.morphologyEx(number_mask, cv2.MORPH_OPEN, ker)
-# cnts, _ = cv2.findContours(number_mask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
-
-# with open('digit_classifier_Neural Net.pickle','rb') as f:
-#     digit_classifier = pickle.load(f)
-
-# for cnt in cnts:
-#     x,y,w,h = cv2.boundingRect(cnt)
-#     box = number_mask[y:y+h,x:x+w]
-#     box = cv2.resize(box,(25,25)).flatten()
-#     num = digit_classifier.predict([box])[0]
-#     #cv2.putText(image_cv,str(num),(x,y+h),cv2.FONT_HERSHEY_SIMPLEX,3,0,3)
-
-# edges = cv2.Canny(grayimage,50,150,apertureSize = 3)
-# edges[:300] = 0
-# edges[-450:] = 0
-# lines = cv2.HoughLines(edges,1,np.pi/180,300)
-
-# lines = [(l[0][0],l[0][1]) for l in lines]
-# lines = [(r*np.cos(t),r*np.sin(t)) for (r,t) in lines]
-# horlines = [int(line[1]) for line in lines if abs(line[0]) < 1]
-# verlines = [int(line[0]) for line in lines if abs(line[1]) < 1]
-# horlines = get_almost_unique(horlines)[:-1]
-# verlines = get_almost_unique(verlines)[:-1]
-
-# board = np.zeros((len(verlines),len(horlines)))
-
-# for i,x0 in enumerate(verlines):
-#     for j,y0 in enumerate(horlines):
-#         board[i,j] = cc[y0+100,x0+100]
-#         cv2.circle(image,(x0+100,y0+100),10,(0,255,0),-1)
-
-# print(board.transpose())
-
-# #cv2.imshow('image_cv',image_cv)
-# cv2.imshow('image',image)
-# #cv2.imshow('a',edges)
-
-# cv2.waitKey()
