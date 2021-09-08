@@ -1,9 +1,9 @@
 import numpy as np
 from cv2 import cv2
 from ppadb.client import Client as AdbClient
-from itertools import product
-from time import sleep
-from math import floor
+import constraint
+from itertools import accumulate
+import operator
 
 new_level_button = [(375, 880, '4x4'), (536, 880, '5x5'), (734, 880, '6x6'),
                     (375, 1090, '7x7'), (536, 1090, '8x8'), (734, 1090, '9x9')]
@@ -43,7 +43,6 @@ print('level: {}'.format(level))
 
 col_pos = get_almost_unique(circles[:, 0])
 row_pos = get_almost_unique(circles[:, 1])
-print(col_pos, row_pos)
 assert len(col_pos) == level
 assert len(row_pos) == level
 
@@ -73,29 +72,59 @@ for y, x, r in circles:
         # Vuoto
         cv2.circle(image, (int(y), int(x)), int(r), (0, 255, 0), 10)
 
+problem = constraint.Problem()
+problem.addVariables([f'r{x}c{y}' for x in range(level) for y in range(level)], [0,1])
+
+for x,y in zip(*np.where(board == -2)):
+    problem.addConstraint(constraint.ExactSumConstraint(0), [f'r{x}c{y}'])
+
+
+def check_counter(X,Y,vars):
+    assert 0 <= X < level
+    assert 0 <= Y < level
+    assert all(v == 0 or v == 1 for v in vars)
+    assert len(vars) == 2*(level-1)
+    north_len = X
+    south_len = level-1-X
+    east_len = level-1-Y
+    west_len = Y
+
+    north = vars[:north_len]
+    south = vars[north_len:north_len+south_len]
+    east = vars[north_len+south_len:north_len+south_len+east_len]
+    west = vars[north_len+south_len+east_len:]
+
+    
+    assert len(north) == north_len
+    assert len(south) == south_len
+    assert len(east) == east_len
+    assert len(west) == west_len
+
+    assert board[X,Y] > 0
+    target = sum(sum(accumulate(s, operator.mul)) for s in [north, south, east, west])
+    return board[X,Y] == target
+
+def check_counter_generator(A,B):
+    return lambda *vs: check_counter(A,B,vs)
+
+for x,y in zip(*np.where(board > 0)):
+    target_num = board[x,y]
+    problem.addConstraint(constraint.ExactSumConstraint(1), [f'r{x}c{y}'])
+    north = [f'r{z}c{y}' for z in range(x-1,-1,-1)]
+    south = [f'r{z}c{y}' for z in range(x+1,level)]
+    east = [f'r{x}c{z}' for z in range(y+1,level)]
+    west = [f'r{x}c{z}' for z in range(y-1,-1,-1)]
+    problem.addConstraint(check_counter_generator(x,y), north+south+east+west)
+    problem.addConstraint(constraint.MinSumConstraint(target_num), north+south+east+west)
+
+for s in problem.getSolutionIter():
+    t = [s[f'r{x}c{y}'] for x in range(level) for y in range(level)]
+    t = np.asarray(t).reshape(level,level)
+    print(t)
+    print()
+
 print(board)
-
-
-def get_counter(x, y):
-    north = np.flip(board[:x, y])
-    south = board[x+1:, y]
-    east = board[x, y+1:]
-    west = np.flip(board[x, :y])
-
-    if -2 in north:
-        north = north[:np.where(north == -2)[0][0]]
-    if -2 in south:
-        south = south[:np.where(south == -2)[0][0]]
-    if -2 in east:
-        east = east[:np.where(east == -2)[0][0]]
-    if -2 in west:
-        west = west[:np.where(west == -2)[0][0]]
-
-    visible = np.concatenate([north,south,east,west],axis=0)
-    number_visible = np.count_nonzero(visible)
-    return number_visible, 0 in visible
-
-print(get_counter(4, 3))
+# print(get_counter(4, 3))
 
 
 #image = cv2.resize(image, None, fx=0.3, fy=0.3)
