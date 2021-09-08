@@ -7,10 +7,35 @@ from time import sleep
 import heapq
 from copy import deepcopy
 
-def heuristic(board):
-    #TODO: migliorare l'euristica, vedi livello 143
-    return sum(sum(i != j for i,j in zip(t[:-1], t[1:])) for t in board) + sum(len(set(t))-1 for t in board)
+def heuristic_column(col):
+    if col[-4] == 0 or col[-3] == 0:
+        return 0
+    if col[-2] == 0:
+        if col[-1] == col[-2]:
+            return 0
+        else:
+            return 1
+    if col[-1] == 0:
+        if col[-1] != col[-2]:
+            return 2
+        if col[-2] != col[-3]:
+            return 1
+        return 0
 
+    if col[-1] != col[-2]:
+        return 3
+    if col[-2] != col[-3]:
+        return 2
+    if col[-3] != col[-4]:
+        return 1
+    return 0
+
+def heuristic(board):
+    x1 = sum(map(heuristic_column, board))
+    x2 = sum(sum(i != j for i,j in zip(t[:-1], t[1:])) for t in board)
+    x3 = sum(len(set(t))-1 for t in board)
+    return x1+x2+x3#min(x1,x2)
+    
 def is_valid_move(board, num_start_column, num_end_column):
     if num_start_column == num_end_column:
         return False
@@ -75,6 +100,7 @@ def a_star_search(start):
         b,move =  came_from[b]
         list_of_moves.append(move)
     list_of_moves.reverse()
+    print(len(cost_so_far),len(list_of_moves))
     return list_of_moves
 
 def get_screencap(device):
@@ -135,7 +161,6 @@ board = tuple([tuple(x) for x in board.T])
 solution = a_star_search(board)
 
 space = colum_num_to_screen[1][0]-colum_num_to_screen[0][0]
-print(space)
 colum_num_to_screen[N-2] = (colum_num_to_screen[N-3][0]+space,colum_num_to_screen[N-3][1])
 colum_num_to_screen[N-1] = (colum_num_to_screen[N-3][0]+2*space,colum_num_to_screen[N-3][1])
 
