@@ -34,7 +34,8 @@ def heuristic(board):
     x1 = sum(map(heuristic_column, board))
     x2 = sum(sum(i != j for i,j in zip(t[:-1], t[1:])) for t in board)
     x3 = sum(len(set(t))-1 for t in board)
-    return x1+x2+x3#min(x1,x2)
+    num_empty = board.count((0,0,0,0))
+    return x1+x2+x3-num_empty#min(x1,x2)
     
 def is_valid_move(board, num_start_column, num_end_column):
     if num_start_column == num_end_column:
